@@ -3933,7 +3933,7 @@ class MusicBot(discord.Client):
 
         user_permissions = self.permissions.for_user(message.author)
 
-        argspec = inspect.signature(handler) 
+        argspec = inspect.signature(handler)
         params = argspec.parameters.copy()
 
         sentmsg = response = None
