@@ -3882,8 +3882,14 @@ class MusicBot(discord.Client):
         if not handler:
             # alias handler
             if self.config.usealias:
-                command = self.aliases.get(command)
+                alias_command = self.aliases.get(command)
+                command, *alias_args = alias_command.split(" ")
+               
+                for alias_arg in alias_args:
+                    args.append(alias_arg)
+                
                 handler = getattr(self, "cmd_" + command, None)
+
                 if not handler:
                     return
             else:
@@ -3927,7 +3933,7 @@ class MusicBot(discord.Client):
 
         user_permissions = self.permissions.for_user(message.author)
 
-        argspec = inspect.signature(handler)
+        argspec = inspect.signature(handler) 
         params = argspec.parameters.copy()
 
         sentmsg = response = None
