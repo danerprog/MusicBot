@@ -484,7 +484,9 @@ class MusicBot(discord.Client):
             return channel.guild.voice_client
         else:
             client = await channel.connect(timeout=60, reconnect=True)
-            await channel.guild.change_voice_state(channel=channel, self_mute=False, self_deaf=True)
+            await channel.guild.change_voice_state(
+                channel=channel, self_mute=False, self_deaf=True
+            )
             return client
 
     async def disconnect_voice_client(self, guild):
@@ -3880,8 +3882,14 @@ class MusicBot(discord.Client):
         if not handler:
             # alias handler
             if self.config.usealias:
-                command = self.aliases.get(command)
+                alias_command = self.aliases.get(command)
+                command, *alias_args = alias_command.split(" ")
+               
+                for alias_arg in alias_args:
+                    args.append(alias_arg)
+                
                 handler = getattr(self, "cmd_" + command, None)
+
                 if not handler:
                     return
             else:

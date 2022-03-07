@@ -48,7 +48,7 @@ class Aliases:
                         str(self.aliases_file)
                     ),
                 )
-            self.aliases.update({alias.lower(): cmd.lower() for alias in aliases})
+            self.aliases.update({alias: cmd for alias in aliases})
 
     def get(self, arg):
         """
