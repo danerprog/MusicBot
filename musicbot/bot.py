@@ -33,7 +33,7 @@ from .entry import StreamPlaylistEntry
 from .opus_loader import load_opus_lib
 from .config import Config, ConfigDefaults
 from .permissions import Permissions, PermissionsDefaults
-from .aliases import Aliases, AliasesDefault
+from .aliases import AliasesDefault
 from .constructs import SkipState, Response
 from .utils import (
     load_file,
@@ -46,6 +46,8 @@ from .utils import (
 )
 from .spotify import Spotify
 from .json import Json
+from .CommandModifier import CommandModifier
+from .gacha import GachaDefault
 
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
@@ -63,7 +65,7 @@ intents.presences = False
 
 
 class MusicBot(discord.Client):
-    def __init__(self, config_file=None, perms_file=None, aliases_file=None):
+    def __init__(self, config_file=None, perms_file=None, aliases_file=None, gacha_file=None):
         try:
             sys.stdout.write("\x1b]2;MusicBot {}\x07".format(BOTVERSION))
         except:
@@ -79,6 +81,9 @@ class MusicBot(discord.Client):
 
         if aliases_file is None:
             aliases_file = AliasesDefault.aliases_file
+    
+        if gacha_file is None:
+            gacha_file = GachaDefault.gacha_file
 
         self.players = {}
         self.exit_signal = None
@@ -93,8 +98,9 @@ class MusicBot(discord.Client):
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
         self.str = Json(self.config.i18n_file)
 
-        if self.config.usealias:
-            self.aliases = Aliases(aliases_file)
+        self.command_modifier = CommandModifier(
+            aliases_file if self.config.usealias else None,
+            gacha_file if self.config.usegacha else None)
 
         self.blacklist = set(load_file(self.config.blacklist_file))
         self.autoplaylist = load_file(self.config.auto_playlist_file)
@@ -3880,19 +3886,22 @@ class MusicBot(discord.Client):
 
         handler = getattr(self, "cmd_" + command, None)
         if not handler:
-            # alias handler
-            if self.config.usealias:
-                alias_command = self.aliases.get(command)
-                command, *alias_args = alias_command.split(" ")
-               
-                for alias_arg in alias_args:
-                    args.append(alias_arg)
-                
-                handler = getattr(self, "cmd_" + command, None)
+            modified_command = self.command_modifier.modifyUsingAlias(command)
+            modified_command, *modified_args = modified_command.split(" ")
+            
+            if modified_command == "gacha":
+                modified_command = self.command_modifier.modifyUsingGacha(" ".join(modified_args))
+                modified_command, *modified_args = modified_command.split(" ")
+            elif modified_command == "" and command == "gacha":
+                modified_command = self.command_modifier.modifyUsingGacha(" ".join(args))
+                modified_command, *modified_args = modified_command.split(" ")
 
-                if not handler:
-                    return
-            else:
+            for modified_arg in modified_args:
+                args.append(modified_arg)
+            
+            handler = getattr(self, "cmd_" + modified_command, None)
+
+            if not handler:
                 return
 
         if isinstance(message.channel, discord.abc.PrivateChannel):
