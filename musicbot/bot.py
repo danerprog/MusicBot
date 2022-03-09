@@ -46,6 +46,7 @@ from .utils import (
 )
 from .spotify import Spotify
 from .json import Json
+from .billboard import Billboard
 
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
@@ -1899,7 +1900,7 @@ class MusicBot(discord.Client):
             while True:
                 try:
                     info, info_process, info_process_err = await get_info(song_url)
-                    log.debug(info)
+                    log.debug("info: " + str(info))
 
                     if (
                         info_process
@@ -2128,6 +2129,7 @@ class MusicBot(discord.Client):
                 entry, position = await player.playlist.add_entry(
                     song_url, channel=channel, author=author, head=head
                 )
+                Billboard.getBillboard(channel.guild.id).queue(song_url)
 
                 reply_text = self.str.get(
                     "cmd-play-song-reply",
@@ -3629,6 +3631,10 @@ class MusicBot(discord.Client):
 
         await self.safe_send_message(author, "\n".join(lines))
         return Response("\N{OPEN MAILBOX WITH RAISED FLAG}", delete_after=20)
+        
+    async def cmd_billboard(self, guild):
+        Billboard.getBillboard(guild.id).dumpTrackInfoToLogs()
+        return Response("Dumping info to logs.")
 
     @owner_only
     async def cmd_setname(self, leftover_args, name):
