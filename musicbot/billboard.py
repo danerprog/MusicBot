@@ -1,3 +1,4 @@
+from discord import Embed
 import json
 import os
 from pathlib import Path
@@ -68,6 +69,17 @@ class Billboard:
             
         def isQueuedMoreThan(self, other_track):
             return self.getNumberOfTimesQueued() > other_track.getNumberOfTimesQueued()
+            
+        def generateDiscordEmbed(self):
+            embed = Embed()
+            embed.title = self._info_json["title"]
+            embed.url = "https://www.youtube.com/watch?v=" + self._video_id
+            embed.add_field(name = "Times Queued", value = self._info_json["times_queued"], inline = False)
+            
+            thumbnail_url = "https://i.ytimg.com/vi/" + self._video_id + "/hq720.jpg"
+            embed.set_thumbnail(url = thumbnail_url)
+            embed.set_image(url = thumbnail_url)
+            return embed
             
         def __str__(self):
             return str("video_id: {}, info_json: {}".format(
@@ -264,6 +276,15 @@ class Billboard:
         chart = Billboard.Chart(column_widths)
         chart.addTracks(top_songs_list)
         return chart.generateString()
+        
+    def generateDiscordEmbedsForTopSongs(self, number_of_songs):    
+        top_songs_list = self._track_manager.getTopQueuedSongs(number_of_songs)
+        embeds = []
+        
+        for track in top_songs_list:
+            embeds.append(track.generateDiscordEmbed())
+            
+        return embeds
         
     def dumpTrackInfoToLogs(self):
         self._track_manager.dumpTrackInfoToLogs()
