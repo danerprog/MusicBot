@@ -2129,7 +2129,10 @@ class MusicBot(discord.Client):
                 entry, position = await player.playlist.add_entry(
                     song_url, channel=channel, author=author, head=head
                 )
-                Billboard.getBillboard(channel.guild.id).queue(song_url)
+                Billboard.getBillboard(channel.guild.id).queue({
+                    "video_id" : info["id"],
+                    "title" : info["title"]
+                })
 
                 reply_text = self.str.get(
                     "cmd-play-song-reply",
@@ -3632,9 +3635,26 @@ class MusicBot(discord.Client):
         await self.safe_send_message(author, "\n".join(lines))
         return Response("\N{OPEN MAILBOX WITH RAISED FLAG}", delete_after=20)
         
-    async def cmd_billboard(self, guild):
-        Billboard.getBillboard(guild.id).dumpTrackInfoToLogs()
-        return Response("Dumping info to logs.")
+    async def cmd_billboard(self, guild, leftover_args):
+        log.info("cmd_billboard called. leftover_args: {}".format(str(leftover_args)))
+        number_of_top_songs_to_place_in_chart = 20
+        
+        response = "No arguments provided."
+        if len(leftover_args) > 0:
+            response = "Cannot recognize option: {}".format(leftover_args[0])
+        
+            if leftover_args[0] == "top":
+                number_of_top_songs_to_place_in_chart = 20
+                try:
+                    number_of_top_songs_to_place_in_chart = int(leftover_args[1])
+                except:
+                    pass
+                response = Billboard.getBillboard(guild.id).generateTopSongsChart(number_of_top_songs_to_place_in_chart)
+            elif leftover_args[0] == "dump":
+                response = "Dumping track info to logs."
+                Billboard.getBillboard(guild.id).dumpTrackInfoToLogs()
+                
+        return Response(response)
 
     @owner_only
     async def cmd_setname(self, leftover_args, name):
