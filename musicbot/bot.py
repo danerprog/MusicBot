@@ -3639,11 +3639,12 @@ class MusicBot(discord.Client):
     async def cmd_billboard(self, channel, guild, leftover_args):
         log.info("cmd_billboard called. leftover_args: {}".format(str(leftover_args)))
         
-        response = "No arguments provided."
-        if len(leftover_args) > 0:
+        if not self.config.is_billboard_feature_enabled:
+            response = "Billboard feature is disabled."
+        elif len(leftover_args) > 0:
             response = "Cannot recognize option: {}".format(leftover_args[0])
         
-            if leftover_args[0] == "top":
+            if leftover_args[0] == "top" and self.config.embeds:
                 response = None
                 number_of_top_songs_to_place_in_chart = 10
                 try:
@@ -3663,10 +3664,13 @@ class MusicBot(discord.Client):
                     
                     await self.safe_send_message(channel, embed)
                     place += 1
-                
-            elif leftover_args[0] == "dump":
+            elif not self.config.embeds:
+                response = "Embeds are disabled. Unable to display top songs."  
+            elif leftover_args[0] == "top" and leftover_args[0] == "dump":
                 response = "Dumping track info to logs."
                 Billboard.getBillboard(guild.id).dumpTrackInfoToLogs()
+        else:
+            response = "No arguments provided."
                 
         return None if response is None else Response(response)
 
