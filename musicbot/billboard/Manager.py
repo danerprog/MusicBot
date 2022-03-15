@@ -67,8 +67,6 @@ class Manager:
                 Manager.BILLBOARD[guild_id][name]["snapshot"] = Snapshot(billboard)
                 Manager.BILLBOARD[guild_id][name]["snapshot"].archive()
                 
-                
-
         seconds_to_sleep = 3600
         log.info("Calculations done. Recalculating in {} seconds.".format(
             str(seconds_to_sleep)

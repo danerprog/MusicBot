@@ -23,9 +23,16 @@ class SongManager:
                 log.debug("Found index. Breaking loop. index_where_song_should_be_placed: {}".format(str(index_where_song_should_be_placed)))
                 break
 
-        self._ordered_song_array.insert(index_where_song_should_be_placed, song_to_place)    
-        log.debug("Song placed. self._ordered_song_array: {}".format(str(self._ordered_song_array)))
-        
+        if index_where_song_should_be_placed >= number_of_songs_in_ordered_song_array - 1:
+            self._ordered_song_array.append(song_to_place)
+        else:
+            self._ordered_song_array.insert(index_where_song_should_be_placed, song_to_place)
+
+        log.debug("Song placed. index_where_song_should_be_placed: {}, self._ordered_song_array: {}".format(
+            str(index_where_song_should_be_placed),
+            str(self._ordered_song_array)
+        ))
+
     def get(self, video_id):
         return None if video_id not in self._song_dictionary else self.song_dictionary[video_id]
         

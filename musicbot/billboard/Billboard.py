@@ -80,6 +80,7 @@ class Billboard:
                 }, 
                 self._song_working_directory))
 
+        self._billboard_content["song_ids_ordered_by_most_to_least_queued"] = []
         top_queued_songs = song_manager.getTopQueuedSongs(self._number_of_songs_to_display)
         for song in top_queued_songs:
             log.debug("song: {}".format(str(song)))
