@@ -14,9 +14,7 @@ from .SongManager import SongManager
 
 log = logging.getLogger(__name__)
 
-class Billboard():
-
-    BILLBOARDS = {}
+class Billboard:
 
     def __init__(self, guild_id, billboard_name, number_of_songs_to_display):
         self._guild_id = str(guild_id)
@@ -62,9 +60,10 @@ class Billboard():
         }
         log.debug("_loadBillboardFile called. billboard_json_file_path: {}".format(billboard_json_file_path))
         self._json_file = JsonFile(self._working_directory + "info.json", default_content = self._billboard_content)
+        json_content = self._json_file.json()
 
-        for key, value in self._json_file.json().items():
-            self._billboard_content[key] = value if key not in loaded_info_json else loaded_info_json[key]
+        for key, value in json_content.items():
+            self._billboard_content[key] = value if key not in json_content else self._json_file[key]
            
     async def _triggerLoopThatChecksIfBillboardTopShouldBeRecalculated(self):
         date_last_calculated = date.fromisoformat(self._billboard_content["date_last_calculated"])
@@ -144,14 +143,29 @@ class Billboard():
         
     def generateDiscordEmbedsForTopSongs(self, number_of_songs = None):
         self._loadTopSongsToCacheIfNeeded()
-        
+    
         number_of_songs = self._number_of_songs_to_display if number_of_songs is None else number_of_songs
         log.info("generateDiscordEmbedsForTopSongs called. number_of_songs: {}".format(str(number_of_songs)))
         
+        embed_author_name = self.getName() + " #"
         embeds = []
-        
+        place = 1
+
         for song in self._top_songs_cache[:number_of_songs]:
-            embeds.append(song.generateDiscordEmbed())
+            embed = song.generateDiscordEmbed()
+            embed.set_author(name = embed_author_name + str(place))
+            
+            if place == 1:
+                embed.set_thumbnail(url = "")
+                embed.colour = discord.Colour.gold()
+            else:
+                embed.set_image(url = "")
+                position_last_week = song.getPositionLastWeek()
+                position_this_week = song.getPositionThisWeek()
+                embed.colour = discord.Colour.green() if position_this_week > position_last_week else discord.Colour.red() if position_this_week < position_last_week else discord.Colour.darker_gray()
+
+            place += 1  
+            embeds.append(embed)
             
         return embeds
         
@@ -163,27 +177,7 @@ class Billboard():
         
     def getName(self):
         return self._billboard_name
-        
-    def getBillboard(guild_id, name):
-        guild_id = str(guild_id)
-        billboard = None
-        if guild_id not in Billboard.BILLBOARDS and name not in Billboard.BILLBOARDS[guild_id]:
-            log.warning("Attempted to get a billboard that does not exist! guild_id: {}, name: {}".format(guild_id, name))
-        else:
-            billboard = Billboard.BILLBOARDS[guild_id][name]
-        return billboard
-        
-    def registerBillboard(billboard):   
-        if isinstance(billboard, Billboard):
-            Billboard.BILLBOARDS[billboard.getGuildId()][billboard.getName()] = billboard
-        else:
-            log.warning("Tried to register a non-billboard object! billboard: {}".format(str(billboard)))
-        
-
-            
     
-        
-            
         
         
         

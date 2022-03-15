@@ -46,7 +46,7 @@ from .utils import (
 )
 from .spotify import Spotify
 from .json import Json
-from .billboard.Specialized import Specialized as SpecializedBillboard
+from .billboard.Manager import Manager as BillboardManager
 
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
@@ -1346,6 +1346,14 @@ class MusicBot(discord.Client):
                 "The options missing are: {0}".format(self.config.missing_keys)
             )
             print(flush=True)
+            
+        if self.config.is_billboard_feature_enabled:
+            for guild in self.guilds:
+                guild_id = guild.id
+                log.info("Registering Overall billboard for guild_id: {}".format(
+                    str(guild_id)
+                ))
+                BillboardManager.registerOverall(guild_id)
 
         # t-t-th-th-that's all folks!
 
@@ -2130,7 +2138,7 @@ class MusicBot(discord.Client):
                     song_url, channel=channel, author=author, head=head
                 )
                 
-                SpecializedBillboard.overall(channel.guild.id).queue({
+                BillboardManager.getOverall(channel.guild.id).queue({
                     "video_id" : info["id"],
                     "title" : info["title"]
                 })
@@ -3645,10 +3653,10 @@ class MusicBot(discord.Client):
             response = "Embeds are disabled. Unable to display top songs."  
         elif len(leftover_args) > 1 and leftover_args[0] == "dump":
             response = "Dumping track info to logs."
-            SpecializedBillboard.overall(guild.id).dumpTrackInfoToLogs()
+            BillboardManager.getOverall(guild.id).dumpTrackInfoToLogs()
         elif len(leftover_args) > 0 and leftover_args[0] == "overall":
             response = None
-            embeds = SpecializedBillboard.overall(guild.id).generateDiscordEmbedsForTopSongs()
+            embeds = BillboardManager.getOverall(guild.id).generateDiscordEmbedsForTopSongs()
             for embed in embeds:
                 await self.safe_send_message(channel, embed)
         else:
