@@ -46,7 +46,7 @@ from .utils import (
 )
 from .spotify import Spotify
 from .json import Json
-from .billboard import Billboard
+from .billboard.Specialized import Specialized as SpecializedBillboard
 
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
@@ -2130,7 +2130,7 @@ class MusicBot(discord.Client):
                     song_url, channel=channel, author=author, head=head
                 )
                 
-                Billboard.getBillboard(channel.guild.id).queue({
+                SpecializedBillboard.overall(channel.guild.id).queue({
                     "video_id" : info["id"],
                     "title" : info["title"]
                 })
@@ -3641,36 +3641,18 @@ class MusicBot(discord.Client):
         
         if not self.config.is_billboard_feature_enabled:
             response = "Billboard feature is disabled."
-        elif len(leftover_args) > 0:
-            response = "Cannot recognize option: {}".format(leftover_args[0])
-        
-            if leftover_args[0] == "top" and self.config.embeds:
-                response = None
-                number_of_top_songs_to_place_in_chart = 10
-                try:
-                    number_of_top_songs_to_place_in_chart = int(leftover_args[1])
-                except:
-                    pass
-                embeds = Billboard.getBillboard(guild.id).generateDiscordEmbedsForTopSongs(number_of_top_songs_to_place_in_chart)
-
-                place = 1
-                for embed in embeds:
-                    embed.set_author(name = "#" + str(place))
-                    
-                    if place == 1:
-                        embed.set_thumbnail(url = "")
-                    else:
-                        embed.set_image(url = "")
-                    
-                    await self.safe_send_message(channel, embed)
-                    place += 1
-            elif not self.config.embeds:
-                response = "Embeds are disabled. Unable to display top songs."  
-            elif leftover_args[0] == "top" and leftover_args[0] == "dump":
-                response = "Dumping track info to logs."
-                Billboard.getBillboard(guild.id).dumpTrackInfoToLogs()
+        elif not self.config.embeds:
+            response = "Embeds are disabled. Unable to display top songs."  
+        elif len(leftover_args) > 1 and leftover_args[0] == "dump":
+            response = "Dumping track info to logs."
+            SpecializedBillboard.overall(guild.id).dumpTrackInfoToLogs()
+        elif len(leftover_args) > 0 and leftover_args[0] == "overall":
+            response = None
+            embeds = SpecializedBillboard.overall(guild.id).generateDiscordEmbedsForTopSongs()
+            for embed in embeds:
+                await self.safe_send_message(channel, embed)
         else:
-            response = "No arguments provided."
+            response = "Invalid arguments provided. args: {}".format(str(leftover_args))
                 
         return None if response is None else Response(response)
 
