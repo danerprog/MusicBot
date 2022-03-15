@@ -15,6 +15,7 @@ class JsonFile:
         self._json_file_path = json_file_path
         self._json = {}
         self._createJsonFileIfNeeded(default_content)
+        self.load()
         
     def _createJsonFileIfNeeded(self, default_content):
         log.debug("_createJsonFileIfNeeded called.")       
@@ -33,6 +34,9 @@ class JsonFile:
         return self.json()
         
     def save(self, content):
+        log.debug("save called. content: {}".format(
+            str(content)
+        ))
         self._createJsonFile(content)
         self._json = content
         

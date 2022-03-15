@@ -1353,7 +1353,7 @@ class MusicBot(discord.Client):
                 log.info("Registering Overall billboard for guild_id: {}".format(
                     str(guild_id)
                 ))
-                BillboardManager.registerOverall(guild_id)
+                BillboardManager.registerCumulative(guild_id)
             BillboardManager.activate()
 
         # t-t-th-th-that's all folks!
@@ -2139,7 +2139,7 @@ class MusicBot(discord.Client):
                     song_url, channel=channel, author=author, head=head
                 )
                 
-                BillboardManager.getOverall(channel.guild.id).queue({
+                BillboardManager.queue(channel.guild.id, "cumulative", {
                     "video_id" : info["id"],
                     "title" : info["title"]
                 })
@@ -3654,12 +3654,20 @@ class MusicBot(discord.Client):
             response = "Embeds are disabled. Unable to display top songs."  
         elif len(leftover_args) > 1 and leftover_args[0] == "dump":
             response = "Dumping track info to logs."
-            BillboardManager.getOverall(guild.id).dumpTrackInfoToLogs()
-        elif len(leftover_args) > 0 and leftover_args[0] == "overall":
+            billboard = BillboardManager.get(guild.id, leftover_args[1])
+            if billboard is None:
+                response = "No billboard found with name: {}".format(leftover_args[1])
+            else:
+                billboard.dumpTrackInfoToLogs()
+        elif len(leftover_args) > 0 :
             response = None
-            embeds = BillboardManager.getOverall(guild.id).generateDiscordEmbedsForTopSongs()
-            for embed in embeds:
-                await self.safe_send_message(channel, embed)
+            billboard = BillboardManager.get(guild.id, leftover_args[0])
+            if billboard is None:
+                response = "No billboard found with name: {}".format(leftover_args[0])
+            else:
+                embeds = billboard.generateDiscordEmbedsForTopSongs()
+                for embed in embeds:
+                    await self.safe_send_message(channel, embed)
         else:
             response = "Invalid arguments provided. args: {}".format(str(leftover_args))
                 

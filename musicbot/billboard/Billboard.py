@@ -1,9 +1,10 @@
 import asyncio
 from datetime import datetime, date
 import discord
+import logging
 import os
 from pathlib import Path
-import logging
+
 
 from .Chart import Chart
 from musicbot.exceptions import HelpfulError
@@ -42,6 +43,7 @@ class Billboard:
     def _initializeWorkingDirectories(self):
         self._working_directory = self._base_working_directory + "billboard\\" + self._billboard_name + "\\"
         self._song_working_directory = self._working_directory + "songs\\"
+
         log.debug("_initializeWorkingDirectories called. working_directory: {}, song_working_dictionary: {}".format(
             self._working_directory,
             self._song_working_directory
@@ -60,8 +62,8 @@ class Billboard:
         self._json_file = JsonFile(self._working_directory + "info.json", default_content = self._billboard_content)
         json_content = self._json_file.json()
 
-        for key, value in json_content.items():
-            self._billboard_content[key] = value if key not in json_content else self._json_file[key]
+        for key, value in self._billboard_content.items():
+            self._billboard_content[key] = value if key not in json_content else json_content[key]
 
 
     def _calculateBillboardTopSongs(self):
@@ -174,7 +176,11 @@ class Billboard:
         
     def getName(self):
         return self._billboard_name
-    
         
+    def getNumberOfSongsToDisplay(self):
+        return self._number_of_songs_to_display
         
+    def getNumberOfDaysBeforeRecalculationShouldBePerformed(self):
+        return self._number_of_days_before_recalculation_should_be_performed
+
         
