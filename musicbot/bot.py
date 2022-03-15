@@ -1354,6 +1354,7 @@ class MusicBot(discord.Client):
                     str(guild_id)
                 ))
                 BillboardManager.registerOverall(guild_id)
+            BillboardManager.activate()
 
         # t-t-th-th-that's all folks!
 

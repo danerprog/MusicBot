@@ -1,5 +1,6 @@
 from .Billboard import Billboard
 
+import asyncio
 import logging
 
 
@@ -35,7 +36,37 @@ class Manager:
         
     def registerOverall(guild_id):
         guild_id = str(guild_id)
-        Manager.register(Billboard(guild_id, "overall", 20))
+        Manager.register(Billboard({
+            "guild_id" : guild_id,
+            "name" : "overall",
+            "number_of_songs_to_display" : 20,
+            "number_of_days_before_recalculation_should_be_performed" : 7
+        }))
         
     def getOverall(guild_id):
         return Manager.get(guild_id, "overall")
+
+    def activate():
+        log.info("Creating infinite loop for _calculateTopSongsForAllBillboards")
+        asyncio.create_task(Manager._calculateTopSongsForAllBillboards())
+
+    async def _calculateTopSongsForAllBillboards()
+        for guild_id in Manager.BILLBOARD:
+            for name in Manager.BILLBOARD[guild_id]:
+                log.info("Calculating Top Songs for billbords in guild_id: {}, name: {}".format(
+                    guild_id,
+                    name
+                ))
+
+                Manager.get(guild_id, name).calculateBillboardTopSongsIfNeeded()
+
+        seconds_to_sleep = 3600
+        log.info("Calculations done. Recalculating in {} seconds.".format(
+            str(seconds_to_sleep)
+        ))
+        await asyncio.sleep(seconds_to_sleep)
+        asyncio.create_task(Manager._calculateTopSongsForAllBillboards())
+
+
+
+

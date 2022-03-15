@@ -16,17 +16,16 @@ log = logging.getLogger(__name__)
 
 class Billboard:
 
-    def __init__(self, guild_id, billboard_name, number_of_songs_to_display):
-        self._guild_id = str(guild_id)
-        self._billboard_name = billboard_name
-        self._number_of_songs_to_display = number_of_songs_to_display
+    def __init__(self, args):
+        self._guild_id = str(args["guild_id"])
+        self._billboard_name = args["name"]
+        self._number_of_songs_to_display = args["number_of_songs_to_display"]
+        self._number_of_days_before_recalculation_should_be_performed = args["number_of_days_before_recalculation_should_be_performed"]
         
-        log.debug("Creating Billboard. guild_id: {}, billboard_name: {}, number_of_songs_to_display: {}".format(
-            self._guild_id,
-            self._billboard_name,
-            str(self._number_of_songs_to_display)
+        log.debug("Creating Billboard. args: {}".format(
+            str(args)
         ))
-        
+
         self._base_working_directory = "data\\" + self._guild_id + "\\"
         self._song_manager = SongManager()
         self._billboard_content = {}
@@ -35,7 +34,6 @@ class Billboard:
         self._throwHelpfulErrorIfWorkingDirectoryDoesNotExist()
         self._initializeWorkingDirectories()
         self._loadBillboardFile()
-        asyncio.create_task(self._triggerLoopThatChecksIfBillboardTopShouldBeRecalculated())
 
     def _throwHelpfulErrorIfWorkingDirectoryDoesNotExist(self):
         if not Path(self._base_working_directory).exists():
@@ -64,30 +62,13 @@ class Billboard:
 
         for key, value in json_content.items():
             self._billboard_content[key] = value if key not in json_content else self._json_file[key]
-           
-    async def _triggerLoopThatChecksIfBillboardTopShouldBeRecalculated(self):
-        date_last_calculated = date.fromisoformat(self._billboard_content["date_last_calculated"])
-        date_now = datetime.now().date()
-        delta_in_days = (date_now - date_last_calculated).days
-        log.debug("_triggerLoopThatChecksIfBillboardTopShouldBeRecalculated called. date_last_calculated: {}, date_now: {}, delta_in_days: {}".format(
-            str(date_last_calculated),
-            str(date_now),
-            str(delta_in_days)
-        ))
-        
-        if delta_in_days >= 7:
-            self._calculateBillboardTopSongs()
-            self._billboard_content["date_last_calculated"] =  str(date_now)
-            self._json_file.save(self._billboard_content)
-            
-        await asyncio.sleep(3600)
-        asyncio.create_task(self._triggerLoopThatChecksIfBillboardTopShouldBeRecalculated())
-          
+
+
     def _calculateBillboardTopSongs(self):
         log.debug("_calculateBillboardTopSongs called.")
         self._top_songs_cache = []
         song_manager = SongManager()
-        
+
         for video_id in next(os.walk(self._song_working_directory))[1]:
             log.debug("video_id: {}".format(video_id))
             song_manager.manage(
@@ -96,11 +77,11 @@ class Billboard:
                     "title" : "null"
                 }, 
                 self._song_working_directory))
-                
+
         top_queued_songs = song_manager.getTopQueuedSongs(self._number_of_songs_to_display)
         for song in top_queued_songs:
             log.debug("song: {}".format(str(song)))
-            
+
             song.incrementNumberOfWeeksInChart()
             song.updatePositionOnChart(len(self._top_songs_cache))
             song.save()
@@ -171,6 +152,22 @@ class Billboard:
         
     def dumpSongInfoToLogs(self):
         log.debug("top_songs_cache: {}".format(str(self._top_songs_cache)))
+        
+    def calculateBillboardTopSongsIfNeeded(self):
+        date_last_calculated = date.fromisoformat(self._billboard_content["date_last_calculated"])
+        date_now = datetime.now().date()
+        delta_in_days = (date_now - date_last_calculated).days
+        
+        log.debug("calculateBillboardTopSongsIfNeeded called. date_last_calculated: {}, date_now: {}, delta_in_days: {}".format(
+            str(date_last_calculated),
+            str(date_now),
+            str(delta_in_days)
+        ))
+        
+        if delta_in_days >= self._number_of_days_before_recalculation_should_be_performed:
+            self._calculateBillboardTopSongs()
+            self._billboard_content["date_last_calculated"] =  str(date_now)
+            self._json_file.save(self._billboard_content)
         
     def getGuildId(self):
         return self._guild_id
