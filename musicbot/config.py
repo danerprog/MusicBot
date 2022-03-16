@@ -167,9 +167,6 @@ class Config:
         self.usealias = config.getboolean(
             "MusicBot", "UseAlias", fallback=ConfigDefaults.usealias
         )
-        self.is_billboard_feature_enabled = config.getboolean(
-            "MusicBot", "EnableBillboardFeature", fallback = ConfigDefaults.is_billboard_feature_enabled
-        )
         self.footer_text = config.get(
             "MusicBot", "CustomEmbedFooter", fallback=ConfigDefaults.footer_text
         )
@@ -512,7 +509,6 @@ class ConfigDefaults:
     legacy_skip = False
     leavenonowners = False
     usealias = True
-    is_billboard_feature_enabled = False
     searchlist = False
     defaultsearchresults = 3
     footer_text = "Just-Some-Bots/MusicBot ({})".format(BOTVERSION)

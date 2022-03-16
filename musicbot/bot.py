@@ -46,7 +46,6 @@ from .utils import (
 )
 from .spotify import Spotify
 from .json import Json
-from .billboard.Manager import Manager as BillboardManager
 
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
@@ -1346,15 +1345,6 @@ class MusicBot(discord.Client):
                 "The options missing are: {0}".format(self.config.missing_keys)
             )
             print(flush=True)
-            
-        if self.config.is_billboard_feature_enabled:
-            for guild in self.guilds:
-                guild_id = guild.id
-                log.info("Registering Overall billboard for guild_id: {}".format(
-                    str(guild_id)
-                ))
-                BillboardManager.registerCumulative(guild_id)
-            BillboardManager.activate()
 
         # t-t-th-th-that's all folks!
 
@@ -1909,7 +1899,7 @@ class MusicBot(discord.Client):
             while True:
                 try:
                     info, info_process, info_process_err = await get_info(song_url)
-                    log.debug("info: " + str(info))
+                    log.debug(info)
 
                     if (
                         info_process
@@ -2138,11 +2128,8 @@ class MusicBot(discord.Client):
                 entry, position = await player.playlist.add_entry(
                     song_url, channel=channel, author=author, head=head
                 )
-                
-                BillboardManager.queue(channel.guild.id, "cumulative", {
-                    "video_id" : info["id"],
-                    "title" : info["title"]
-                })
+
+                self._postSuccessfulQueue({"info":info})
 
                 reply_text = self.str.get(
                     "cmd-play-song-reply",
@@ -3644,34 +3631,6 @@ class MusicBot(discord.Client):
 
         await self.safe_send_message(author, "\n".join(lines))
         return Response("\N{OPEN MAILBOX WITH RAISED FLAG}", delete_after=20)
-        
-    async def cmd_billboard(self, channel, guild, leftover_args):
-        log.info("cmd_billboard called. leftover_args: {}".format(str(leftover_args)))
-        
-        if not self.config.is_billboard_feature_enabled:
-            response = "Billboard feature is disabled."
-        elif not self.config.embeds:
-            response = "Embeds are disabled. Unable to display top songs."  
-        elif len(leftover_args) > 1 and leftover_args[0] == "dump":
-            response = "Dumping track info to logs."
-            billboard = BillboardManager.get(guild.id, leftover_args[1])
-            if billboard is None:
-                response = "No billboard found with name: {}".format(leftover_args[1])
-            else:
-                billboard.dumpTrackInfoToLogs()
-        elif len(leftover_args) > 0 :
-            response = None
-            billboard = BillboardManager.get(guild.id, leftover_args[0])
-            if billboard is None:
-                response = "No billboard found with name: {}".format(leftover_args[0])
-            else:
-                embeds = billboard.generateDiscordEmbedsForTopSongs()
-                for embed in embeds:
-                    await self.safe_send_message(channel, embed)
-        else:
-            response = "Invalid arguments provided. args: {}".format(str(leftover_args))
-                
-        return None if response is None else Response(response)
 
     @owner_only
     async def cmd_setname(self, leftover_args, name):
@@ -4395,3 +4354,6 @@ class MusicBot(discord.Client):
             if vc.guild == guild:
                 return vc
         return None
+        
+    def _postSuccessfulQueue(self, args):
+        pass
