@@ -64,8 +64,15 @@ class Manager:
                 ))
                 billboard = Manager.BILLBOARD[guild_id][name]["internal"]
                 billboard.calculateBillboardTopSongsIfNeeded()
-                Manager.BILLBOARD[guild_id][name]["snapshot"] = Snapshot(billboard)
-                Manager.BILLBOARD[guild_id][name]["snapshot"].archive()
+                old_snapshot = Manager.BILLBOARD[guild_id][name]["snapshot"]
+                new_snapshot = Snapshot(billboard)
+                new_snapshot.archive()
+                
+                if old_snapshot is not None and not new_snapshot.isTheSameAs(old_snapshot):
+                    log.debug("Archiving older snapshot.")
+                    old_snapshot.archive()
+                
+                Manager.BILLBOARD[guild_id][name]["snapshot"] = new_snapshot
                 
         seconds_to_sleep = 3600
         log.info("Calculations done. Recalculating in {} seconds.".format(

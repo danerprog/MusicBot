@@ -83,11 +83,12 @@ class Billboard:
         self._billboard_content["song_ids_ordered_by_most_to_least_queued"] = []
         top_queued_songs = song_manager.getTopQueuedSongs(self._number_of_songs_to_display)
         for song in top_queued_songs:
-            log.debug("song: {}".format(str(song)))
-
+            self._top_songs_cache.append(song)
+            
             song.incrementNumberOfWeeksInChart()
             song.updatePositionOnChart(len(self._top_songs_cache))
             song.save()
+            log.debug("song: {}".format(str(song)))
             
             self._billboard_content["song_ids_ordered_by_most_to_least_queued"].append(song.getVideoId()) 
             
@@ -96,7 +97,7 @@ class Billboard:
     
         if len(self._top_songs_cache) == 0:
             song_manager = SongManager()
-            
+
             for video_id in self._billboard_content["song_ids_ordered_by_most_to_least_queued"]:
                 song_manager.manage(
                     Song({
@@ -104,9 +105,8 @@ class Billboard:
                         "title" : "null"
                     }, 
                     self._song_working_directory))
-                    
+
             self._top_songs_cache = song_manager.getTopQueuedSongs(self._number_of_songs_to_display)
-            
             log.debug("Cache loaded. top_songs_cache: {}".format(self._top_songs_cache))
 
     def queue(self, video_information_dictionary):
@@ -138,7 +138,7 @@ class Billboard:
         for song in self._top_songs_cache[:number_of_songs]:
             embed = song.generateDiscordEmbed()
             embed.set_author(name = embed_author_name + str(place))
-            
+
             if place == 1:
                 embed.set_thumbnail(url = "")
                 embed.colour = discord.Colour.gold()
@@ -146,7 +146,7 @@ class Billboard:
                 embed.set_image(url = "")
                 position_last_week = song.getPositionLastWeek()
                 position_this_week = song.getPositionThisWeek()
-                embed.colour = discord.Colour.green() if position_this_week > position_last_week else discord.Colour.red() if position_this_week < position_last_week else discord.Colour.darker_gray()
+                embed.colour = discord.Colour.green() if position_this_week < position_last_week else discord.Colour.red() if position_this_week > position_last_week else discord.Colour.darker_gray()
 
             place += 1  
             embeds.append(embed)

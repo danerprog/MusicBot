@@ -70,5 +70,8 @@ class Snapshot(Billboard):
         os.rename(previous_working_directory, self._working_directory)
         shutil.copytree(self._original_billboard._song_working_directory, self._song_working_directory)
 
+    def isTheSameAs(self, other_snapshot):
+        return self._billboard_content["date_last_calculated"] == other_snapshot._billboard_content["date_last_calculated"]
+
         
         

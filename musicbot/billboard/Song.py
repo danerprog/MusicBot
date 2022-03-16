@@ -86,12 +86,19 @@ class Song:
         embed.title = self._info_json["title"]
         embed.url = "https://www.youtube.com/watch?v=" + self._video_id
         embed.add_field(name = "Times Queued", value = self._info_json["times_queued"], inline = False)
-        
+
+        number_of_weeks_on_chart = self._info_json["number_of_weeks_on_chart"]
+        weeks_on_chart_value = "New!" if number_of_weeks_on_chart <= 0 else number_of_weeks_on_chart
+        embed.add_field(name = "Weeks on Chart", value = weeks_on_chart_value, inline = True)
+
+        position_last_week_value = "-" if self._info_json["position_last_week"] <= 0 else self._info_json["position_last_week"]
+        embed.add_field(name = "Position Last Week", value = position_last_week_value, inline = True)
+
         thumbnail_url = "https://i.ytimg.com/vi/" + self._video_id + "/hq720.jpg"
         embed.set_thumbnail(url = thumbnail_url)
         embed.set_image(url = thumbnail_url)
         return embed
-        
+
     def __str__(self):
         return str("video_id: {}, info_json: {}".format(
             str(self._video_id), 
