@@ -37,7 +37,12 @@ class Snapshot(Billboard):
         ))
         
         os.makedirs(self._working_directory, exist_ok=True)
-        Path(self._song_working_directory).mkdir(exist_ok=True)
+        self._copySongDirectoryIfNeeded()
+
+    def _copySongDirectoryIfNeeded(self):
+        song_directory_path = Path(self._song_working_directory)
+        if not song_directory_path.exists():
+            shutil.copytree(self._original_billboard._song_working_directory, self._song_working_directory)
     
     @overrides(Billboard)
     def _loadBillboardFile(self):
@@ -68,7 +73,6 @@ class Snapshot(Billboard):
         self._working_directory = new_working_directory
         
         os.rename(previous_working_directory, self._working_directory)
-        shutil.copytree(self._original_billboard._song_working_directory, self._song_working_directory)
 
     def isTheSameAs(self, other_snapshot):
         return self.getName() == other_snapshot.getName() and self._billboard_content["date_last_calculated"] == other_snapshot._billboard_content["date_last_calculated"]
