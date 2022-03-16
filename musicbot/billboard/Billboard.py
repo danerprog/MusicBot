@@ -5,8 +5,6 @@ import logging
 import os
 from pathlib import Path
 
-
-from .Chart import Chart
 from musicbot.exceptions import HelpfulError
 from musicbot.lib.JsonFile import JsonFile
 from .Song import Song
@@ -113,17 +111,6 @@ class Billboard:
         song = Song(video_information_dictionary, self._song_working_directory)
         song.incrementTimesQueued()
         song.save()
-        
-    def generateTopSongsChart(self, number_of_songs = None):
-        number_of_songs = self._number_of_songs_to_display if number_of_songs is None else number_of_songs
-        column_widths = {
-            "title" : 30,
-            "times_queued" : 10
-        }
-        
-        chart = Chart(column_widths)
-        chart.addSongs(self._top_songs_cache[:number_of_songs])
-        return chart.generateString()
         
     def generateDiscordEmbedsForTopSongs(self, number_of_songs = None):
         self._loadTopSongsToCacheIfNeeded()

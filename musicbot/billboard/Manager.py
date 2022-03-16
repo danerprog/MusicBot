@@ -46,9 +46,9 @@ class Manager:
         guild_id = str(guild_id)
         Manager.register(Billboard({
             "guild_id" : guild_id,
-            "name" : "cumulative",
+            "name" : "Cumulative",
             "number_of_songs_to_display" : 20,
-            "number_of_days_before_recalculation_should_be_performed" : 0
+            "number_of_days_before_recalculation_should_be_performed" : 7
         }))
 
     def activate():
@@ -66,7 +66,6 @@ class Manager:
                 billboard.calculateBillboardTopSongsIfNeeded()
                 old_snapshot = Manager.BILLBOARD[guild_id][name]["snapshot"]
                 new_snapshot = Snapshot(billboard)
-                new_snapshot.archive()
                 
                 if old_snapshot is not None and not new_snapshot.isTheSameAs(old_snapshot):
                     log.debug("Archiving older snapshot.")
