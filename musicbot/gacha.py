@@ -127,6 +127,7 @@ class Gacha:
                 
 
 class GachaDefault:
+
     gacha_file = "config/gacha.json"
     gacha_seed = {}
     gacha = {}

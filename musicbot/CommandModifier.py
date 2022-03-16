@@ -33,4 +33,4 @@ class CommandModifier:
         
     def modifyUsingGacha(self, command):
         return self._gacha.roll(command)
-   
+
