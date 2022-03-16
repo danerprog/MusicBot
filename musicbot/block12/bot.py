@@ -65,7 +65,7 @@ class Block12MusicBot(MusicBot):
     @overrides(MusicBot)
     def _postSuccessfulQueue(self, args):
         info = args["info"]
-        BillboardManager.queue(channel.guild.id, "Cumulative", {
+        BillboardManager.queue(args["guild_id"], "Cumulative", {
             "video_id" : info["id"],
             "title" : info["title"]
         })

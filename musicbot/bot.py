@@ -2129,7 +2129,7 @@ class MusicBot(discord.Client):
                     song_url, channel=channel, author=author, head=head
                 )
 
-                self._postSuccessfulQueue({"info":info})
+                self._postSuccessfulQueue({"info":info,"guild_id":channel.guild.id})
 
                 reply_text = self.str.get(
                     "cmd-play-song-reply",
