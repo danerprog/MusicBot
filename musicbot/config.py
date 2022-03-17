@@ -178,9 +178,6 @@ class Config:
             "DefaultSearchResults",
             fallback=ConfigDefaults.defaultsearchresults,
         )
-        self.usegacha = config.getboolean(
-            "MusicBot", "UseGacha", fallback=ConfigDefaults.usegacha
-        )
 
         self.debug_level = config.get(
             "MusicBot", "DebugLevel", fallback=ConfigDefaults.debug_level
@@ -512,7 +509,6 @@ class ConfigDefaults:
     legacy_skip = False
     leavenonowners = False
     usealias = True
-    usegacha = False
     searchlist = False
     defaultsearchresults = 3
     footer_text = "Just-Some-Bots/MusicBot ({})".format(BOTVERSION)

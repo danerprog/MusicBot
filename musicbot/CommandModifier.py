@@ -1,5 +1,10 @@
+import logging
+
 from .aliases import Aliases
 from .gacha import Gacha
+
+
+log = logging.getLogger(__name__)
 
 class CommandModifier:
 
@@ -33,4 +38,21 @@ class CommandModifier:
         
     def modifyUsingGacha(self, command):
         return self._gacha.roll(command)
+        
+    def get(self, command):
+        command_to_return = ""
+        modified_command = self.modifyUsingAlias(command)
+        modified_command, *modified_args = modified_command.split(" ")
 
+        if modified_command == "gacha":
+            modified_command = self.modifyUsingGacha(" ".join(modified_args))
+            modified_command, *modified_args = modified_command.split(" ")
+        elif modified_command == "" and command == "gacha":
+            modified_command = self.modifyUsingGacha(" ".join(args))
+            modified_command, *modified_args = modified_command.split(" ")
+
+        command_to_return = modified_command
+        for modified_arg in modified_args:
+            command_to_return += " " + modified_arg
+
+        return command_to_return
