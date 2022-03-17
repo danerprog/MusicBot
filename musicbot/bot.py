@@ -3882,15 +3882,9 @@ class MusicBot(discord.Client):
 
         handler = getattr(self, "cmd_" + command, None)
         if not handler:
-            if self.config.usealias:
-                alias_command = self.aliases.get(command)
-                command, *alias_args = alias_command.split(" ")
-
-                for alias_arg in alias_args:
-                    args.append(alias_arg)
-
+            if self.should_command_modifier_be_used:
+                command, args = self.command_modifier.get(command, args)
                 handler = getattr(self, "cmd_" + command, None)
-
                 if not handler:
                     return
             else:

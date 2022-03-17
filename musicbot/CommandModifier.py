@@ -39,20 +39,19 @@ class CommandModifier:
     def modifyUsingGacha(self, command):
         return self._gacha.roll(command)
         
-    def get(self, command):
-        command_to_return = ""
-        modified_command = self.modifyUsingAlias(command)
+    def get(self, original_command, original_args):
+        modified_command = self.modifyUsingAlias(original_command)
         modified_command, *modified_args = modified_command.split(" ")
 
         if modified_command == "gacha":
             modified_command = self.modifyUsingGacha(" ".join(modified_args))
             modified_command, *modified_args = modified_command.split(" ")
-        elif modified_command == "" and command == "gacha":
+        elif modified_command == "" and original_command == "gacha":
             modified_command = self.modifyUsingGacha(" ".join(args))
             modified_command, *modified_args = modified_command.split(" ")
-
-        command_to_return = modified_command
+ 
         for modified_arg in modified_args:
-            command_to_return += " " + modified_arg
+            original_args.append(modified_arg)
 
-        return command_to_return
+        return modified_command, original_args
+        
