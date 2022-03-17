@@ -1,6 +1,6 @@
 import logging
 
-from .config import Block12ConfigInjector
+from .config import Block12ConfigDecorator
 from musicbot.billboard.Manager import Manager as BillboardManager
 from musicbot.constructs import Response
 from musicbot.bot import MusicBot
@@ -19,7 +19,7 @@ class Block12MusicBot(MusicBot):
     def __init__(self):
         log.info("Running Block12 version of MusicBot")
         super().__init__()
-        Block12ConfigInjector(self.config)
+        Block12ConfigDecorator(self.config)
 
     @overrides(MusicBot)
     async def on_ready(self):

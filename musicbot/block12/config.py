@@ -1,6 +1,6 @@
 import configparser
 
-class Block12ConfigInjector:
+class Block12ConfigDecorator:
 
     def __init__(self, musicbot_config):
         config = configparser.ConfigParser(interpolation=None)
