@@ -13,30 +13,28 @@ log = logging.getLogger(__name__)
 class Gacha:
 
     class Command:
-        def __init__(self, normal_command, minimum_value, maximum_value, weight):
-            log.debug("Creating command. normal_command: {}, minimum_value: {}, maximum_value: {}, weight: {}".format(
+        def __init__(self, normal_command, weight, ceiling):
+            log.debug("Creating command. normal_command: {}, weight: {}, ceiling: {}".format(
                 str(normal_command), 
-                str(minimum_value), 
-                str(maximum_value),
-                str(weight)
+                str(weight),
+                str(ceiling)
             ))
             self._normal_command = normal_command
-            self._minimum_value = minimum_value
-            self._maximum_value = maximum_value
             self._weight = weight
-            
-        def isNumberWithinBounds(self, value):
-            return value >= self._minimum_value and value <= self._maximum_value
-            
+            self._ceiling = ceiling
+
         def getNormalCommand(self):
             return self._normal_command
           
         def getWeight(self):
             return self._weight
+            
+        def getCeiling(self):
+            return self._ceiling
 
     class NoneCommand(Command):
         def __init__(self):
-            super().__init__("", -1, -1, -1)
+            super().__init__("", -1, -1)
 
 
     def __init__(self, gacha_file):
@@ -102,12 +100,12 @@ class Gacha:
                 log.warning("Unable to parse command: {}. Discarding.".format(str(normal_command)))
             else:
                 parsed_weight = self._parseWeight(weight)
+                current_maximum_value = current_maximum_value + parsed_weight
                 self._gacha_commands[gacha_command]["normal_commands"].append(Gacha.Command(
                     normal_command, 
-                    current_maximum_value, 
-                    current_maximum_value + parsed_weight,
-                    parsed_weight))
-                current_maximum_value = current_maximum_value + parsed_weight
+                    parsed_weight,
+                    current_maximum_value))
+                
 
         self._gacha_commands[gacha_command]["maximum_value"] = current_maximum_value
         
@@ -122,12 +120,12 @@ class Gacha:
         
     def _rollNormalCommand(self, gacha_command):
         log.debug("_rollNormalCommand called. gacha_command: {}".format(str(gacha_command)))
-        command = Gacha.NoneCommand()
+        command = GachaDefault.none_command
         gacha = self._gacha_commands[gacha_command]
         rolled_number = random.randint(0, gacha["maximum_value"] - 1)
         log.debug("rolled_number: " + str(rolled_number))
-        for normal_command in gacha["normal_commands"]:
-            if normal_command.isNumberWithinBounds(rolled_number):
+        for normal_command in reversed(gacha["normal_commands"]):
+            if rolled_number < normal_command.getCeiling():
                 command = normal_command
         return command.getNormalCommand()
         
@@ -188,6 +186,7 @@ class GachaDefault:
     gacha_file = "config/gacha.json"
     gacha_seed = {}
     gacha = {}
+    none_command = Gacha.NoneCommand()
 
 
 class NoGacha(Gacha):
