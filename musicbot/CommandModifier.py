@@ -18,13 +18,13 @@ class CommandModifier:
  
     def _initializeAliasesFile(self, aliases_file):
         if aliases_file is None:
-            self._aliases = NoAliases()
+            self._aliases = CommandModifier.NoAliases()
         else:
             self._aliases = Aliases(aliases_file)
             
     def _initializeGachaFile(self, gacha_file):
         if gacha_file is None:
-            self._gacha = NoGacha()
+            self._gacha = CommandModifier.NoGacha()
         else:
             self._gacha = Gacha(gacha_file)
             
@@ -35,8 +35,16 @@ class CommandModifier:
         return self._gacha.roll(command)
         
     def get(self, original_command, original_args):
+        log.debug("get called. original_command: {}, original_args:{}".format(
+            original_command,
+            str(original_args)
+        ))
         modified_command = self.modifyUsingAlias(original_command)
         modified_command, *modified_args = modified_command.split(" ")
+        log.debug("modified_command: {}, modified_args: {}".format(
+            modified_command,
+            str(modified_args)
+        ))
 
         if modified_command == "gacha":
             modified_command = self.modifyUsingGacha(" ".join(modified_args))
