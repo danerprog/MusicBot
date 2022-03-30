@@ -50,17 +50,17 @@ class CommandModifier:
             modified_command = self.modifyUsingGacha(" ".join(modified_args))
             modified_command, *modified_args = modified_command.split(" ")
         elif modified_command == "" and original_command == "gacha":
-            modified_command = self.modifyUsingGacha(" ".join(original_args))
-            modified_command, *modified_args = modified_command.split(" ")
-            original_args = []
- 
-        for modified_arg in modified_args:
-            original_args.append(modified_arg)
-            
-        if modified_command == "gacha":
-            modified_command = "gacha_internal"
+            if len(original_args) > 0 and original_args[0] == "rates":
+                modified_command = "gacha_internal"
+                modified_args = []
+            else:
+                modified_command = self.modifyUsingGacha(" ".join(original_args))
+                modified_command, *modified_args = modified_command.split(" ")
 
-        return modified_command, original_args
+            for original_arg in original_args:
+                modified_args.append(original_arg)
+
+        return modified_command, modified_args
         
     def rates(self, gacha_command):
         return self._gacha.rates(gacha_command)

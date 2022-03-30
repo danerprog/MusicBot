@@ -36,7 +36,7 @@ class Gacha:
 
     class NoneCommand(Command):
         def __init__(self):
-            super().__init__("", -1, -1)
+            super().__init__("", -1, -1, -1)
 
 
     def __init__(self, gacha_file):
@@ -173,12 +173,12 @@ class Gacha:
                 weight = command.getWeight()
                 commands_string += '\n' + command.getNormalCommand()
                 weights_string += '\n' + str(weight)
-                rates_string += '\n' + str(round(weight / maximum_value, 4) * 100) + "%"
+                rates_string += "\n{0:.2f}%".format(round(weight / maximum_value, 4) * 100)
             
             embed.add_field(name = "Command", value = commands_string, inline = True)
             embed.add_field(name = "Weight", value = weights_string, inline = True)
             embed.add_field(name = "Rate", value = rates_string, inline = True)
-            embed.add_field(name = "Maximum Value", value = maximum_value, inline = False)
+            embed.add_field(name = "Maximum Weight", value = maximum_value, inline = False)
         
         return embed
                 
