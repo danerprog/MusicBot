@@ -6,8 +6,8 @@ import random
 
 from .exceptions import HelpfulError
 
-log = logging.getLogger(__name__)
 
+log = logging.getLogger(__name__)
 
 class Gacha:
 
@@ -22,11 +22,15 @@ class Gacha:
             self._maximum_value = maximum_value
             
         def isNumberWithinBounds(self, value):
-            return value >= self._minimum_value and value < self._maximum_value
+            return value >= self._minimum_value and value <= self._maximum_value
             
         def getNormalCommand(self):
             return self._normal_command
             
+    class NoneCommand(Command):
+        def __init__(self):
+            super().__init__("", -1, -1)
+
 
     def __init__(self, gacha_file):
         log.debug("__init__ called.")
@@ -91,8 +95,12 @@ class Gacha:
                 log.warning("Unable to parse command: {}. Discarding.".format(str(normal_command)))
             else:
                 parsed_rate = self._parseRate(rate)
-                self._gacha_commands[gacha_command]["normal_commands"].append(Gacha.Command(normal_command, current_maximum_value, current_maximum_value + parsed_rate))
-                current_maximum_value = current_maximum_value + parsed_rate + 1
+                gacha_command_minimum_value = current_maximum_value
+                gacha_command_maximum_value = current_maximum_value + parsed_rate - 1
+                self._gacha_commands[gacha_command]["normal_commands"].append(
+                    Gacha.Command(normal_command, gacha_command_minimum_value, gacha_command_maximum_value)
+                )
+                current_maximum_value = gacha_command_maximum_value + 1
                 
         self._gacha_commands[gacha_command]["maximum_value"] = current_maximum_value
         
@@ -107,7 +115,7 @@ class Gacha:
         
     def _rollNormalCommand(self, gacha_command):
         log.debug("_rollNormalCommand called. gacha_command: {}".format(str(gacha_command)))
-        command = None
+        command = Gacha.NoneCommand()
         gacha = self._gacha_commands[gacha_command]
         rolled_number = random.randint(0, gacha["maximum_value"] - 1)
         log.debug("rolled_number: " + str(rolled_number))
@@ -118,8 +126,7 @@ class Gacha:
         
     def roll(self, gacha_command):
         log.debug("roll called. gacha_command: {}".format(str(gacha_command)))
-        normal_command = None
-        print(gacha_command)
+        normal_command = ""
         if gacha_command in self._gacha_commands:
             normal_command = self._rollNormalCommand(gacha_command)
         log.debug("normal_command: " + str(normal_command))
