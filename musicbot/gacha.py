@@ -137,15 +137,15 @@ class Gacha:
         log.debug("normal_command: " + str(normal_command))
         return normal_command
         
-    def rates(self, gacha_command):
-        log.debug("rates called. gacha_command: {}".format(str(gacha_command)))
-        rates = None
+    def weights(self, gacha_command):
+        log.debug("weights called. gacha_command: {}".format(str(gacha_command)))
+        weights = None
         if gacha_command in self._gacha_commands:
-            rates = self._gacha_commands[gacha_command]
-            log.debug("rates found for given command. rates: {}".format(str(rates)))
+            weights = self._gacha_commands[gacha_command]
+            log.debug("weights found for given command. weights: {}".format(str(weights)))
         else:
-            log.debug("no rates found for given command. gacha_commands: {}".format(str(self._gacha_commands)))
-        return rates
+            log.debug("no weights found for given command. gacha_commands: {}".format(str(self._gacha_commands)))
+        return weights
         
     def commands(self):
         keys = self._gacha_commands.keys()
@@ -155,19 +155,19 @@ class Gacha:
     def generateDiscordEmbedForRates(self, gacha_command):
         log.debug("generateDiscordEmbedForRates called. gacha_command: {}".format(gacha_command))
         embed = None
-        rates = self.rates(gacha_command)
+        weights = self.weights(gacha_command)
         
-        if rates is not None:
+        if weights is not None:
             embed = discord.Embed()
             embed.title = "Gacha Rate: {}".format(gacha_command)
             
-            maximum_value = rates["maximum_value"]
+            maximum_value = weights["maximum_value"]
             
             commands_string = ""
             weights_string = ""
             rates_string = ""
             
-            for command in rates["normal_commands"]:
+            for command in weights["normal_commands"]:
                 weight = command.getWeight()
                 commands_string += '\n' + command.getNormalCommand()
                 weights_string += '\n' + str(weight)
@@ -193,7 +193,7 @@ class NoGacha(Gacha):
     def roll(self, arg):
         return ""
         
-    def rates(self, arg):
+    def weights(self, arg):
         return None
         
     def commands(self):
