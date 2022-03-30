@@ -35,12 +35,15 @@ class Block12MusicBot(MusicBot):
             gacha_command = None if len(leftover_args) < 2 else leftover_args[1]
             log.debug("displaying rates. gacha_command: {}".format(str(gacha_command)))
             
-            embeds = self.command_modifier.generateDiscordEmbedForRates(gacha_command)
-            if len(embeds) <= 0:
-                response = "No rates found{}.".format("" if gacha_command is None else " for " + gacha_command)
+            if self.config.embeds:
+                embeds = self.command_modifier.generateDiscordEmbedForRates(gacha_command)
+                if len(embeds) <= 0:
+                    response = "No rates found{}.".format("" if gacha_command is None else " for " + gacha_command)
+                else:
+                    for embed in embeds:
+                        await self.safe_send_message(channel, embed)
             else:
-                for embed in embeds:
-                    await self.safe_send_message(channel, embed)
+                response = "Embeds are disabled. Unable to display gacha rates."
         elif subcommand == None:
             response = "No arguments provided."
         else:
