@@ -7,7 +7,7 @@ class Block12ConfigDecorator:
         config.read(musicbot_config.config_file, encoding="utf-8")
 
         musicbot_config.usegacha = config.getboolean(
-            "MusicBot", "UseGacha", fallback=False
+            "MusicBot", "UseGacha", fallback = False
         )
 
         musicbot_config.is_billboard_feature_enabled = config.getboolean(

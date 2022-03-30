@@ -5,6 +5,7 @@ import logging
 import os
 from pathlib import Path
 
+from musicbot.constructs import Serializable
 from musicbot.exceptions import HelpfulError
 from musicbot.lib.JsonFile import JsonFile
 from .Song import Song

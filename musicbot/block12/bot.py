@@ -68,11 +68,12 @@ class Block12MusicBot(MusicBot):
         return None if response is None else Response(response)
 
     @overrides(MusicBot)
-    def _postSuccessfulQueue(self, args):
-        info = args["info"]
-        BillboardManager.queue(args["guild_id"], "Cumulative", {
-            "video_id" : info["id"],
-            "title" : info["title"]
+    async def on_player_entry_added(self, player, playlist, entry, **kwargs):
+        await super().on_player_entry_added(player, playlist, entry, **kwargs)
+        log.warning(entry.meta)
+        BillboardManager.queue(entry.meta.get("channel").guild.id, "Cumulative", {
+            "video_id" : entry.url.split("=")[-1],
+            "title" : entry.title
         })
 
     def _initializeCommandModifier(self, aliases_file, gacha_file):
