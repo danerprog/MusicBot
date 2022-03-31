@@ -37,10 +37,6 @@ class Manager:
                 name
             ))
         return billboard
-    
-    def queue(guild_id, name, video_information_dictionary):
-        guild_id = str(guild_id)
-        Manager.BILLBOARD[guild_id][name]["internal"].queue(video_information_dictionary)
 
     def registerCumulative(guild_id):
         guild_id = str(guild_id)
@@ -50,10 +46,20 @@ class Manager:
             "number_of_songs_to_display" : 20,
             "number_of_days_before_recalculation_should_be_performed" : 7
         }))
+        Manager.register(Billboard({
+            "guild_id" : guild_id,
+            "name" : "Testing",
+            "number_of_songs_to_display" : 20,
+            "number_of_days_before_recalculation_should_be_performed" : 0
+        }))
 
     def activate():
         log.info("Creating infinite loop for _calculateTopSongsForAllBillboards")
         asyncio.create_task(Manager._calculateTopSongsForAllBillboards())
+        
+    def addEventEmitter(event_emitter):
+        log.debug("addEventEmitter called. event_emitter: {}".format(str(event_emitter)))
+        event_emitter.on("entry-added", Manager._onEntryAdded)
 
     async def _calculateTopSongsForAllBillboards():
         for guild_id in Manager.BILLBOARD:
@@ -73,11 +79,22 @@ class Manager:
                 
                 Manager.BILLBOARD[guild_id][name]["snapshot"] = new_snapshot
                 
-        seconds_to_sleep = 3600
+        seconds_to_sleep = 30
         log.info("Calculations done. Recalculating in {} seconds.".format(
             str(seconds_to_sleep)
         ))
         await asyncio.sleep(seconds_to_sleep)
         asyncio.create_task(Manager._calculateTopSongsForAllBillboards())
+        
+    async def _onEntryAdded(player, playlist, entry, **kwargs):
+        log.debug("_onEntryAdded called.")
+        guild_id = str(entry.meta.get("channel").guild.id)
+        video_information_dictionary = {
+            "video_id" : entry.url.split("=")[-1],
+            "title" : entry.title
+        }
+        for name in Manager.BILLBOARD[guild_id].keys():
+            Manager.BILLBOARD[guild_id][name]["internal"].queue(video_information_dictionary)
+
 
 

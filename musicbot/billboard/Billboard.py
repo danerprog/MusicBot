@@ -5,7 +5,6 @@ import logging
 import os
 from pathlib import Path
 
-from musicbot.constructs import Serializable
 from musicbot.exceptions import HelpfulError
 from musicbot.lib.JsonFile import JsonFile
 from .Song import Song
@@ -15,6 +14,8 @@ from .SongManager import SongManager
 log = logging.getLogger(__name__)
 
 class Billboard:
+
+    FILENAME = "info.json"
 
     def __init__(self, args):
         self._guild_id = str(args["guild_id"])
@@ -28,12 +29,18 @@ class Billboard:
 
         self._base_working_directory = "data\\" + self._guild_id + "\\"
         self._song_manager = SongManager()
-        self._billboard_content = {}
+        self._billboard_content = {
+            "date_last_calculated" : "1970-01-01",
+            "song_ids_ordered_by_most_to_least_queued" : []
+        }
         self._top_songs_cache = []
         
         self._throwHelpfulErrorIfWorkingDirectoryDoesNotExist()
         self._initializeWorkingDirectories()
         self._loadBillboardFile()
+        
+    def __json__(self):
+        return self._billboard_content
 
     def _throwHelpfulErrorIfWorkingDirectoryDoesNotExist(self):
         if not Path(self._base_working_directory).exists():
@@ -52,11 +59,7 @@ class Billboard:
         Path(self._song_working_directory).mkdir(exist_ok=True)
         
     def _loadBillboardFile(self):
-        billboard_json_file_path = self._working_directory + "info.json"
-        self._billboard_content = {
-            "date_last_calculated" : "1970-01-01",
-            "song_ids_ordered_by_most_to_least_queued" : []
-        }
+        billboard_json_file_path = self._working_directory + Billboard.FILENAME
         log.debug("_loadBillboardFile called. billboard_json_file_path: {}".format(billboard_json_file_path))
         self._json_file = JsonFile(self._working_directory + "info.json", default_content = self._billboard_content)
         json_content = self._json_file.json()
@@ -109,6 +112,7 @@ class Billboard:
             log.debug("Cache loaded. top_songs_cache: {}".format(self._top_songs_cache))
 
     def queue(self, video_information_dictionary):
+        log.debug("queue called. video_information_dictionary: {}".format(video_information_dictionary))
         song = Song(video_information_dictionary, self._song_working_directory)
         song.incrementTimesQueued()
         song.save()
@@ -143,7 +147,7 @@ class Billboard:
         
     def dumpSongInfoToLogs(self):
         log.debug("top_songs_cache: {}".format(str(self._top_songs_cache)))
-        
+
     def calculateBillboardTopSongsIfNeeded(self):
         date_last_calculated = date.fromisoformat(self._billboard_content["date_last_calculated"])
         date_now = datetime.now().date()
@@ -159,6 +163,7 @@ class Billboard:
             self._calculateBillboardTopSongs()
             self._billboard_content["date_last_calculated"] =  str(date_now)
             self._json_file.save(self._billboard_content)
+
         
     def getGuildId(self):
         return self._guild_id
@@ -172,4 +177,3 @@ class Billboard:
     def getNumberOfDaysBeforeRecalculationShouldBePerformed(self):
         return self._number_of_days_before_recalculation_should_be_performed
 
-        

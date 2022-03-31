@@ -33,7 +33,7 @@ class Block12MusicBot(MusicBot):
         if self.config.is_billboard_feature_enabled:
             for guild in self.guilds:
                 guild_id = guild.id
-                log.info("Registering Overall billboard for guild_id: {}".format(
+                log.info("Registering Cumulative billboard for guild_id: {}".format(
                     str(guild_id)
                 ))
                 BillboardManager.registerCumulative(guild_id)
@@ -66,15 +66,12 @@ class Block12MusicBot(MusicBot):
             response = "Invalid arguments provided. args: {}".format(str(leftover_args))
                 
         return None if response is None else Response(response)
-
+        
     @overrides(MusicBot)
-    async def on_player_entry_added(self, player, playlist, entry, **kwargs):
-        await super().on_player_entry_added(player, playlist, entry, **kwargs)
-        log.warning(entry.meta)
-        BillboardManager.queue(entry.meta.get("channel").guild.id, "Cumulative", {
-            "video_id" : entry.url.split("=")[-1],
-            "title" : entry.title
-        })
+    def _init_player(self, player, *args, guild = None):
+        super()._init_player(player, *args, guild = guild)
+        BillboardManager.addEventEmitter(player)
+        return player
 
     def _initializeCommandModifier(self, aliases_file, gacha_file):
         aliases_file = aliases_file if aliases_file is not None else AliasesDefault.aliases_file
