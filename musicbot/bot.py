@@ -46,8 +46,6 @@ from .utils import (
 )
 from .spotify import Spotify
 from .json import Json
-from .CommandModifier import CommandModifier
-from .gacha import GachaDefault
 
 from .constants import VERSION as BOTVERSION
 from .constants import DISCORD_MSG_CHAR_LIMIT, AUDIO_CACHE_PATH
@@ -94,7 +92,7 @@ class MusicBot(discord.Client):
 
         self.permissions = Permissions(perms_file, grant_all=[self.config.owner_id])
         self.str = Json(self.config.i18n_file)
-        
+
         if self.config.usealias:
             self.aliases = Aliases(aliases_file)
 
@@ -3882,8 +3880,9 @@ class MusicBot(discord.Client):
 
         handler = getattr(self, "cmd_" + command, None)
         if not handler:
-            if self.should_command_modifier_be_used:
-                command, args = self.command_modifier.get(command, args)
+            # alias handler
+            if self.config.usealias:
+                command = self.aliases.get(command)
                 handler = getattr(self, "cmd_" + command, None)
                 if not handler:
                     return

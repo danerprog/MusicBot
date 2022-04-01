@@ -406,9 +406,9 @@ def main():
 
         m = None
         try:
-            from musicbot.block12.bot import Block12MusicBot
+            from musicbot import MusicBot
 
-            m = Block12MusicBot()
+            m = MusicBot()
 
             sh.terminator = ""
             sh.terminator = "\n"
