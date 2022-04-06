@@ -48,9 +48,9 @@ class Block12MusicBot(MusicBot):
             response = "Billboard feature is disabled."
         elif not self.config.embeds:
             response = "Embeds are disabled. Unable to display top songs."  
-        elif len(leftover_args) > 1 and leftover_args[0] == "dump":
+        elif self._isBillboardCommandForDumpingSongInfoToLogs(leftover_args):
             response = self._dumpSongInfoToLogsIfAllowed(guild.id, author)
-        elif len(leftover_args) > 0 :
+        elif self._canDefaultBillboardCommandBeExecuted(leftover_args) :
             response = None
             billboard = BillboardManager.get(guild.id, leftover_args[0])
             if billboard is None:
@@ -92,6 +92,23 @@ class Block12MusicBot(MusicBot):
         else:
             response = "You are not allowed to dump billboard logs."
         return response
-
+        
+    def _isBillboardCommandForDumpingSongInfoToLogs(self, leftover_args):
+        leftover_args_length = len(leftover_args)
+        first_leftover_args = leftover_args[0]
+        
+        log.debug("_isBillboardCommandForDumpingSongInfoToLogs called. leftover_args_length: {}, first_leftover_args: {}".format(
+            str(leftover_args_length),
+            first_leftover_args
+        ))
+        return leftover_args_length > 1 and first_leftover_args == "dump"
+        
+    def _canDefaultBillboardCommandBeExecuted(self, leftover_args):
+        leftover_args_length = len(leftover_args)
+        log.debug("_canDefaultBillboardCommandBeExecuted called. leftover_args_length: {}".format(
+            str(leftover_args_length)
+        ))
+        return leftover_args_length > 0
+        
 
 
