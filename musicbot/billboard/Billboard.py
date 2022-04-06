@@ -55,7 +55,7 @@ class Billboard:
             self._song_working_directory
         ))
         
-        Path(self._working_directory).mkdir(exist_ok=True)
+        os.makedirs(self._working_directory, exist_ok=True)
         Path(self._song_working_directory).mkdir(exist_ok=True)
         
     def _loadBillboardFile(self):
