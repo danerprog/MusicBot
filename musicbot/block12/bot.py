@@ -1,6 +1,7 @@
 import logging
 
 from .config import Block12ConfigDecorator
+from .permissions import Block12PermissionsDecorator
 
 from musicbot.aliases import AliasesDefault
 from musicbot.billboard.Manager import Manager as BillboardManager
@@ -24,6 +25,7 @@ class Block12MusicBot(MusicBot):
         log.info("Running Block12 version of MusicBot")
         super().__init__(config_file, perms_file, aliases_file)
         Block12ConfigDecorator(self.config)
+        Block12PermissionsDecorator(self.permissions)
         self._initializeCommandModifier(aliases_file, gacha_file)
 
     @overrides(MusicBot)
@@ -39,7 +41,7 @@ class Block12MusicBot(MusicBot):
                 BillboardManager.registerCumulative(guild_id)
             BillboardManager.activate()
             
-    async def cmd_billboard(self, channel, guild, leftover_args):
+    async def cmd_billboard(self, author, channel, guild, leftover_args):
         log.info("cmd_billboard called. leftover_args: {}".format(str(leftover_args)))
         
         if not self.config.is_billboard_feature_enabled:
@@ -47,12 +49,7 @@ class Block12MusicBot(MusicBot):
         elif not self.config.embeds:
             response = "Embeds are disabled. Unable to display top songs."  
         elif len(leftover_args) > 1 and leftover_args[0] == "dump":
-            response = "Dumping track info to logs."
-            billboard = BillboardManager.get(guild.id, leftover_args[1])
-            if billboard is None:
-                response = "No billboard found with name: {}".format(leftover_args[1])
-            else:
-                billboard.dumpTrackInfoToLogs()
+            response = self._dumpSongInfoToLogsIfAllowed(guild.id, author)
         elif len(leftover_args) > 0 :
             response = None
             billboard = BillboardManager.get(guild.id, leftover_args[0])
@@ -80,5 +77,21 @@ class Block12MusicBot(MusicBot):
             aliases_file if self.config.usealias else None,
             gacha_file if self.config.usegacha else None)
         self.should_command_modifier_be_used = self.config.usealias or self.config.usegacha
+        
+    def _dumpSongInfoToLogsIfAllowed(self, guild_id, author):
+        log.debug("_dumpSongInfoToLogsIfAllowed called.")
+        permissions = self.permissions.for_user(author)
+        response = None
+        if permissions.allow_billboard_log_dumps:
+            billboard = BillboardManager.get(guild.id, leftover_args[1])
+            if billboard is None:
+                response = "No billboard found with name: {}".format(leftover_args[1])
+            else:
+                billboard.dumpSongInfoToLogs()
+                response = "Dumping song info to logs."
+        else:
+            response = "You are not allowed to dump billboard logs."
+        return response
+
 
 

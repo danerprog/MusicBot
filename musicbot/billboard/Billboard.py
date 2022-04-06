@@ -28,7 +28,6 @@ class Billboard:
         ))
 
         self._base_working_directory = "data\\" + self._guild_id + "\\"
-        self._song_manager = SongManager()
         self._billboard_content = {
             "date_last_calculated" : "1970-01-01",
             "song_ids_ordered_by_most_to_least_queued" : []
