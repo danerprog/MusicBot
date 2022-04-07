@@ -32,6 +32,9 @@ class JsonFile:
         
     def get(self):
         return self.json()
+        
+    def __getitem__(self, key):
+        return self._json[key]
 
     def save(self, content):
         log.debug("save called. content: {}".format(
