@@ -70,7 +70,7 @@ class Billboard:
 
     def _calculateBillboardTopSongs(self):
         log.debug("_calculateBillboardTopSongs called.")
-        self._top_songs_cache = []
+        self._clearTopSongsCache()
         ordered_song_list = OrderedSongList()
 
         for video_id in next(os.walk(self._song_working_directory))[1]:
@@ -83,7 +83,7 @@ class Billboard:
                 self._song_working_directory))
 
         self._billboard_content["song_ids_ordered_by_most_to_least_queued"] = []
-        top_queued_songs = ordered_song_list.getTopQueuedSongs(self._number_of_songs_to_display)
+        top_queued_songs = ordered_song_list[:self._number_of_songs_to_display]
         for song in top_queued_songs:
             self._top_songs_cache.append(song)
             
@@ -98,24 +98,25 @@ class Billboard:
         log.debug("_loadTopSongsToCacheIfNeeded called.")
     
         if len(self._top_songs_cache) == 0:
-            ordered_song_list = OrderedSongList()
-
-            for video_id in self._billboard_content["song_ids_ordered_by_most_to_least_queued"]:
-                ordered_song_list.add(
+            for video_id in self._billboard_content["song_ids_ordered_by_most_to_least_queued"][:self._number_of_songs_to_display]:
+                self._top_songs_cache.append(
                     Song({
                         "video_id": video_id,
                         "title" : "null"
                     }, 
                     self._song_working_directory))
 
-            self._top_songs_cache = ordered_song_list.getTopQueuedSongs(self._number_of_songs_to_display)
             log.debug("Cache loaded. top_songs_cache: {}".format(self._top_songs_cache))
+            
+    def _clearTopSongsCache(self):
+        self._top_songs_cache = []
 
     def queue(self, video_information_dictionary):
         log.debug("queue called. video_information_dictionary: {}".format(video_information_dictionary))
         song = Song(video_information_dictionary, self._song_working_directory)
         song.incrementTimesQueued()
         song.save()
+        self._clearTopSongsCache()
         
     def generateDiscordEmbedsForTopSongs(self, number_of_songs = None):
         self._loadTopSongsToCacheIfNeeded()
@@ -149,6 +150,7 @@ class Billboard:
         log.debug("top_songs_cache: {}".format(str(self._top_songs_cache)))
 
     def calculateBillboardTopSongsIfNeeded(self):
+        wasCalculationPerfomed = False
         date_last_calculated = datetime.strptime(self._billboard_content["date_last_calculated"], Billboard.DATE_FORMAT)
         date_now = datetime.now()
         date_delta = date_now - date_last_calculated
@@ -164,7 +166,8 @@ class Billboard:
             self._calculateBillboardTopSongs()
             self._billboard_content["date_last_calculated"] = date_now.strftime(Billboard.DATE_FORMAT)
             self._json_file.save(self._billboard_content)
-
+            wasCalculationPerfomed = True
+        return wasCalculationPerfomed    
         
     def getGuildId(self):
         return self._guild_id

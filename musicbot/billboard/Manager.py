@@ -46,12 +46,6 @@ class Manager:
             "number_of_songs_to_display" : 20,
             "number_of_days_before_recalculation_should_be_performed" : 7
         }))
-        Manager.register(Billboard({
-            "guild_id" : guild_id,
-            "name" : "Testing",
-            "number_of_songs_to_display" : 20,
-            "number_of_days_before_recalculation_should_be_performed" : 0
-        }))
 
     def activate():
         log.info("Creating infinite loop for _calculateTopSongsForAllBillboards")
@@ -69,22 +63,18 @@ class Manager:
                     name
                 ))
                 billboard = Manager.BILLBOARD[guild_id][name]["live"]
-                billboard.calculateBillboardTopSongsIfNeeded()
-                new_snapshot = Snapshot(billboard)
+                wasCalculationPerformed = billboard.calculateBillboardTopSongsIfNeeded()
                 old_snapshot = Manager.BILLBOARD[guild_id][name]["snapshot"]
-               
-                log.debug("old_snapshot: {}, new_snapshot: {}".format(
-                    str(old_snapshot),
-                    str(new_snapshot)
-                ))
                 
-                if old_snapshot is not None and not new_snapshot.isTheSameAs(old_snapshot):
-                    log.debug("Archiving older snapshot.")
+                if wasCalculationPerformed and old_snapshot is not None:
                     old_snapshot.archive()
+                    log.debug("Older snapshot archived. old_snapshot: {}".format(
+                        str(old_snapshot)
+                    ))
+
+                Manager.BILLBOARD[guild_id][name]["snapshot"] = Snapshot(billboard)
                 
-                Manager.BILLBOARD[guild_id][name]["snapshot"] = new_snapshot
-                
-        seconds_to_sleep = 30
+        seconds_to_sleep = 3600
         log.info("Calculations done. Recalculating in {} seconds.".format(
             str(seconds_to_sleep)
         ))
