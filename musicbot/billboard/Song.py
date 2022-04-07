@@ -1,3 +1,4 @@
+import copy
 import discord
 import json
 import logging
@@ -10,6 +11,15 @@ from musicbot.lib.JsonFile import JsonFile
 log = logging.getLogger(__name__)
 
 class Song:
+    DEFAULT_JSON_CONTENT = {
+        "title" : "null",   
+        "times_queued" : 0,
+        "number_of_weeks_on_chart" : -1,
+        "position_this_week" : -1,
+        "position_last_week" : -1,
+        "peak_position" : -1 
+    }
+
     def __init__(self, video_information_dictionary, working_directory):
         log.debug("Creating Song. video_information_dictionary: {}, working_directory: {}".format(str(video_information_dictionary), str(working_directory)))
         self._base_working_directory = working_directory
@@ -30,14 +40,7 @@ class Song:
          
     def _initializeInfoJson(self, video_information_dictionary):
         log.debug("_initializeInfoJson called. video_information_dictionary: {}".format(str(video_information_dictionary)))
-        self._info_json = {
-            "title" : "null",   
-            "times_queued" : 0,
-            "number_of_weeks_on_chart" : -1,
-            "position_this_week" : -1,
-            "position_last_week" : -1,
-            "peak_position" : -1 
-        }
+        self._info_json = copy.deepcopy(Song.DEFAULT_JSON_CONTENT)
         self._json_file = JsonFile(self._info_json_path, default_content = self._info_json)
         
         loaded_info_json = self._json_file.json()
