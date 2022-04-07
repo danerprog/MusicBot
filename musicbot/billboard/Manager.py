@@ -38,11 +38,11 @@ class Manager:
             ))
         return billboard
 
-    def registerCumulative(guild_id):
+    def registerDefaultBillboards(guild_id):
         guild_id = str(guild_id)
         Manager.register(Billboard({
             "guild_id" : guild_id,
-            "name" : "Cumulative",
+            "name" : "All Time",
             "number_of_songs_to_display" : 20,
             "number_of_days_before_recalculation_should_be_performed" : 7
         }))

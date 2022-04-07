@@ -35,10 +35,10 @@ class Block12MusicBot(MusicBot):
         if self.config.is_billboard_feature_enabled:
             for guild in self.guilds:
                 guild_id = guild.id
-                log.info("Registering Cumulative billboard for guild_id: {}".format(
+                log.info("Registering default billboards for guild_id: {}".format(
                     str(guild_id)
                 ))
-                BillboardManager.registerCumulative(guild_id)
+                BillboardManager.registerDefaultBillboards(guild_id)
             BillboardManager.activate()
             
     async def cmd_billboard(self, author, channel, guild, leftover_args):
@@ -52,9 +52,10 @@ class Block12MusicBot(MusicBot):
             response = self._dumpSongInfoToLogsIfAllowed(guild.id, author)
         elif self._canDefaultBillboardCommandBeExecuted(leftover_args) :
             response = None
-            billboard = BillboardManager.get(guild.id, leftover_args[0])
+            billboard_name = " ".join(leftover_args[:]
+            billboard = BillboardManager.get(guild.id, billboard_name))
             if billboard is None:
-                response = "No billboard found with name: {}".format(leftover_args[0])
+                response = "No billboard found with name: {}".format(billboard_name)
             else:
                 embeds = billboard.generateDiscordEmbedsForTopSongs()
                 for embed in embeds:
