@@ -71,8 +71,13 @@ class Billboard:
     def _calculateBillboardTopSongs(self):
         log.debug("_calculateBillboardTopSongs called.")
         self._clearTopSongsCache()
+        self._billboard_content["song_ids_ordered_by_most_to_least_queued"] = []
+        ordered_song_list = self._getOrderedSongListOfSongsInWorkingDirectory()
+        self._includeSongListToBillboardContent(ordered_song_list)
+   
+    def _getOrderedSongListOfSongsInWorkingDirectory(self):
+        log.debug("_getOrderedSongListOfSongsInWorkingDirectory called.")
         ordered_song_list = OrderedSongList()
-
         for video_id in next(os.walk(self._song_working_directory))[1]:
             log.debug("video_id: {}".format(video_id))
             ordered_song_list.add(
@@ -81,9 +86,13 @@ class Billboard:
                     "title" : "null"
                 }, 
                 self._song_working_directory))
-
-        self._billboard_content["song_ids_ordered_by_most_to_least_queued"] = []
-        top_queued_songs = ordered_song_list[:self._number_of_songs_to_display]
+        return ordered_song_list
+        
+    def _includeSongListToBillboardContent(self, song_list):
+        log.debug("_includeSongListToBillboardContent called. song_list: {}".format(
+            str(song_list)
+        ))
+        top_queued_songs = song_list[:self._number_of_songs_to_display]
         for song in top_queued_songs:
             self._top_songs_cache.append(song)
             
