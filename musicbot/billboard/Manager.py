@@ -17,7 +17,7 @@ class Manager:
             guild_id = billboard.getGuildId()
             Manager.BILLBOARD[guild_id] = {} if guild_id not in Manager.BILLBOARD else Manager.BILLBOARD[guild_id]
             Manager.BILLBOARD[guild_id][name] = {
-                "internal" : billboard,
+                "live" : billboard,
                 "snapshot" : None
             }
             
@@ -68,10 +68,15 @@ class Manager:
                     guild_id,
                     name
                 ))
-                billboard = Manager.BILLBOARD[guild_id][name]["internal"]
+                billboard = Manager.BILLBOARD[guild_id][name]["live"]
                 billboard.calculateBillboardTopSongsIfNeeded()
-                old_snapshot = Manager.BILLBOARD[guild_id][name]["snapshot"]
                 new_snapshot = Snapshot(billboard)
+                old_snapshot = Manager.BILLBOARD[guild_id][name]["snapshot"]
+               
+                log.debug("old_snapshot: {}, new_snapshot: {}".format(
+                    str(old_snapshot),
+                    str(new_snapshot)
+                ))
                 
                 if old_snapshot is not None and not new_snapshot.isTheSameAs(old_snapshot):
                     log.debug("Archiving older snapshot.")
@@ -94,7 +99,7 @@ class Manager:
             "title" : entry.title
         }
         for name in Manager.BILLBOARD[guild_id].keys():
-            Manager.BILLBOARD[guild_id][name]["internal"].queue(video_information_dictionary)
+            Manager.BILLBOARD[guild_id][name]["live"].queue(video_information_dictionary)
 
 
 

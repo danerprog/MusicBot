@@ -83,7 +83,7 @@ class Block12MusicBot(MusicBot):
         permissions = self.permissions.for_user(author)
         response = None
         if permissions.allow_billboard_log_dumps:
-            billboard = BillboardManager.get(guild.id, leftover_args[1])
+            billboard = BillboardManager.get(guild_id, leftover_args[1])
             if billboard is None:
                 response = "No billboard found with name: {}".format(leftover_args[1])
             else:

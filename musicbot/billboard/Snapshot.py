@@ -1,6 +1,7 @@
+import copy
+import logging
 import os
 from pathlib import Path
-import logging
 import shutil
 
 from .Billboard import Billboard
@@ -48,8 +49,9 @@ class Snapshot(Billboard):
     def _loadBillboardFile(self):
         billboard_json_file_path = self._working_directory + "info.json"
         log.debug("_loadBillboardFile called. billboard_json_file_path: {}".format(billboard_json_file_path))
-        self._json_file = JsonFile(self._working_directory + "info.json", default_content = self._original_billboard._billboard_content)
-        self._billboard_content = self._json_file.json()
+        self._billboard_content = copy.deepcopy(self._original_billboard._billboard_content)
+        JsonFile(self._working_directory + "info.json", default_content = self._billboard_content)
+        
         
     @overrides(Billboard)
     def queue(self, video_information_dictionary):
@@ -75,7 +77,19 @@ class Snapshot(Billboard):
         os.rename(previous_working_directory, self._working_directory)
 
     def isTheSameAs(self, other_snapshot):
-        return self.getName() == other_snapshot.getName() and self._billboard_content["date_last_calculated"] == other_snapshot._billboard_content["date_last_calculated"]
+        doSnapshotsHaveTheSameName = self.getName() == other_snapshot.getName()
+        doSnapshotsHaveTheSameLastCalculationDate = self._billboard_content["date_last_calculated"] == other_snapshot._billboard_content["date_last_calculated"]
+        log.debug("isTheSameAs called. doSnapshotsHaveTheSameName: {}, doSnapshotsHaveTheSameLastCalculationDate: {}".format(
+            str(doSnapshotsHaveTheSameName),
+            str(doSnapshotsHaveTheSameLastCalculationDate)
+        ))
+        return doSnapshotsHaveTheSameName and doSnapshotsHaveTheSameLastCalculationDate
+        
+    def __str__(self):
+        return "Snapshot[name: {}, date_last_calculated: {}]".format(
+            self.getName(),
+            self._billboard_content["date_last_calculated"]
+        )
 
         
         

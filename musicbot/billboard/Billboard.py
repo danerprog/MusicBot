@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime, date
+from datetime import datetime
 import discord
 import logging
 import os
@@ -8,13 +8,14 @@ from pathlib import Path
 from musicbot.exceptions import HelpfulError
 from musicbot.lib.JsonFile import JsonFile
 from .Song import Song
-from .SongManager import SongManager
+from .OrderedSongList import OrderedSongList
 
 
 log = logging.getLogger(__name__)
 
 class Billboard:
 
+    DATE_FORMAT = "%Y%m%d%H%M%S"
     FILENAME = "info.json"
 
     def __init__(self, args):
@@ -29,7 +30,7 @@ class Billboard:
 
         self._base_working_directory = "data\\" + self._guild_id + "\\"
         self._billboard_content = {
-            "date_last_calculated" : "1970-01-01",
+            "date_last_calculated" : datetime(1970, 1, 1).strftime(Billboard.DATE_FORMAT),
             "song_ids_ordered_by_most_to_least_queued" : []
         }
         self._top_songs_cache = []
@@ -70,11 +71,11 @@ class Billboard:
     def _calculateBillboardTopSongs(self):
         log.debug("_calculateBillboardTopSongs called.")
         self._top_songs_cache = []
-        song_manager = SongManager()
+        ordered_song_list = OrderedSongList()
 
         for video_id in next(os.walk(self._song_working_directory))[1]:
             log.debug("video_id: {}".format(video_id))
-            song_manager.manage(
+            ordered_song_list.add(
                 Song({
                     "video_id": video_id,
                     "title" : "null"
@@ -82,7 +83,7 @@ class Billboard:
                 self._song_working_directory))
 
         self._billboard_content["song_ids_ordered_by_most_to_least_queued"] = []
-        top_queued_songs = song_manager.getTopQueuedSongs(self._number_of_songs_to_display)
+        top_queued_songs = ordered_song_list.getTopQueuedSongs(self._number_of_songs_to_display)
         for song in top_queued_songs:
             self._top_songs_cache.append(song)
             
@@ -97,17 +98,17 @@ class Billboard:
         log.debug("_loadTopSongsToCacheIfNeeded called.")
     
         if len(self._top_songs_cache) == 0:
-            song_manager = SongManager()
+            ordered_song_list = OrderedSongList()
 
             for video_id in self._billboard_content["song_ids_ordered_by_most_to_least_queued"]:
-                song_manager.manage(
+                ordered_song_list.add(
                     Song({
                         "video_id": video_id,
                         "title" : "null"
                     }, 
                     self._song_working_directory))
 
-            self._top_songs_cache = song_manager.getTopQueuedSongs(self._number_of_songs_to_display)
+            self._top_songs_cache = ordered_song_list.getTopQueuedSongs(self._number_of_songs_to_display)
             log.debug("Cache loaded. top_songs_cache: {}".format(self._top_songs_cache))
 
     def queue(self, video_information_dictionary):
@@ -148,19 +149,20 @@ class Billboard:
         log.debug("top_songs_cache: {}".format(str(self._top_songs_cache)))
 
     def calculateBillboardTopSongsIfNeeded(self):
-        date_last_calculated = date.fromisoformat(self._billboard_content["date_last_calculated"])
-        date_now = datetime.now().date()
-        delta_in_days = (date_now - date_last_calculated).days
+        date_last_calculated = datetime.strptime(self._billboard_content["date_last_calculated"], Billboard.DATE_FORMAT)
+        date_now = datetime.now()
+        date_delta = date_now - date_last_calculated
+        delta_in_days = date_delta.days
         
-        log.debug("calculateBillboardTopSongsIfNeeded called. date_last_calculated: {}, date_now: {}, delta_in_days: {}".format(
+        log.debug("calculateBillboardTopSongsIfNeeded called. date_last_calculated: {}, date_now: {}, date_delta: {}".format(
             str(date_last_calculated),
             str(date_now),
-            str(delta_in_days)
+            str(date_delta)
         ))
         
         if delta_in_days >= self._number_of_days_before_recalculation_should_be_performed:
             self._calculateBillboardTopSongs()
-            self._billboard_content["date_last_calculated"] =  str(date_now)
+            self._billboard_content["date_last_calculated"] = date_now.strftime(Billboard.DATE_FORMAT)
             self._json_file.save(self._billboard_content)
 
         
