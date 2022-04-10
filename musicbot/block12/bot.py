@@ -52,8 +52,8 @@ class Block12MusicBot(MusicBot):
             response = self._dumpSongInfoToLogsIfAllowed(guild.id, author)
         elif self._canDefaultBillboardCommandBeExecuted(leftover_args) :
             response = None
-            billboard_name = " ".join(leftover_args[:]
-            billboard = BillboardManager.get(guild.id, billboard_name))
+            billboard_name = " ".join(leftover_args[:])
+            billboard = BillboardManager.get(guild.id, billboard_name)
             if billboard is None:
                 response = "No billboard found with name: {}".format(billboard_name)
             else:
