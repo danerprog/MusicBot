@@ -2,6 +2,7 @@ import logging
 
 from .config import Block12ConfigDecorator
 from .permissions import Block12PermissionsDecorator
+from .player import Block12MusicPlayerInjector
 
 from musicbot.aliases import AliasesDefault
 from musicbot.billboard.Manager import Manager as BillboardManager
@@ -28,6 +29,12 @@ class Block12MusicBot(MusicBot):
         Block12PermissionsDecorator(self.permissions)
         self._initializeCommandModifier(aliases_file, gacha_file)
 
+    async def on_connect(self):
+        log.info("\nMusicBot connected.")
+
+    async def on_disconnect(self):
+        log.info("MusicBot disconnected.")
+        
     @overrides(MusicBot)
     async def on_ready(self):
         await super().on_ready()
@@ -67,9 +74,10 @@ class Block12MusicBot(MusicBot):
         
     @overrides(MusicBot)
     def _init_player(self, player, *args, guild = None):
-        super()._init_player(player, *args, guild = guild)
-        BillboardManager.addEventEmitter(player)
-        return player
+        Block12MusicPlayerInjector(player)
+        player_to_return = super()._init_player(player, *args, guild = guild)
+        BillboardManager.addEventEmitter(player_to_return)
+        return player_to_return
 
     def _initializeCommandModifier(self, aliases_file, gacha_file):
         aliases_file = aliases_file if aliases_file is not None else AliasesDefault.aliases_file
